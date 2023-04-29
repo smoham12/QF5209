@@ -1,18 +1,7 @@
-from enum import Enum
 from math import log, sqrt, exp, erf
+from scipy.stats import norm
+from static import OptType, Metric
 
-
-class OptType(Enum):
-    CALL = 1
-    PUT = 2
-    
-class Metric(Enum):
-    PRICE = 1
-    DELTA = 2
-
-def norm_cdf(z):
-    return 0.5 * ( 1 + erf(z / sqrt(2.0)) )
-    
 
 def bs_closedform(optType: OptType,
                 texp: float,
@@ -42,12 +31,16 @@ def bs_closedform(optType: OptType,
         d2 = d1 - stdev
         
         if metric == Metric.PRICE:
-            return sign * ( asset*norm_cdf(sign*d1) - strike*exp(-disc*texp)*norm_cdf(sign*d2) )
+            return sign * ( asset*norm.cdf(sign*d1) - strike*exp(-disc*texp)*norm.cdf(sign*d2) )
+        elif metric == Metric.DELTA:
+            return sign * norm.cdf(sign*d1)
         
     except Exception as e:
         print(e)
 
 
 if __name__ == "__main__":
-    rslt = bs_closedform(OptType.PUT, 2.0, 100.0, 110.0, 0.15, 0.05, Metric.PRICE)
+    rslt = bs_closedform(OptType.PUT, 2.0, 100.0, 110.0, 0.3, 0.05, Metric.PRICE)
+    print(rslt)
+    rslt = bs_closedform(OptType.PUT, 2.0, 100.0, 110.0, 0.3, 0.05, Metric.DELTA)
     print(rslt)
